@@ -40,6 +40,19 @@ step4:
 		systemctl start pwm_enable.service;\
 	fi
 
+step4_no_jetclocks:
+	install -m 0755 $(LIB) /usr/lib
+	install -m 0644 jetgpio.h /usr/include
+	ldconfig
+	ldconfig -p | grep libjetgpio.so
+	@if  [ $(MODEL) = "xavier" ]; then\
+                cp ./scripts/pwm_enabler.sh /etc/systemd/system;\
+                cp ./scripts/pwm_enable.service /etc/systemd/system;\
+                chmod +x /etc/systemd/system/pwm_enabler.sh;\
+                chown root /etc/systemd/system/pwm_enabler.sh;\
+                systemctl enable pwm_enable.service;\
+                systemctl start pwm_enable.service;\
+        fi
 
 step5:
 	$(eval MODEL := $(shell find /lib/modules/$(uname -r) -name "jetclocks.ko" -exec basename {} \;))
@@ -80,6 +93,8 @@ clean:
 	rm -f *.o $(LIB) get_chip_id hardware
 
 install: step2 step4
+
+install-no-jetclocks: step2 step4_no_jetclocks
 
 uninstall: step5 step6
 
